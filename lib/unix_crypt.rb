@@ -1,6 +1,9 @@
 require 'digest'
 
 module UnixCrypt
+
+  BASE64_CHARS = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".freeze
+
   def self.valid?(password, string)
     # Handle the original DES-based crypt(3)
     return password.crypt(string) == string if string.length == 13
@@ -10,25 +13,30 @@ module UnixCrypt
     hash == m[4]
   end
 
+  def self.make_salt(length=16)
+    salt = ""
+    length.times { salt += BASE64_CHARS[ rand( BASE64_CHARS.length ) ] }
+    salt
+  end
+
   class Base
     def self.build(password, salt, rounds = nil)
-      "$#{identifier}$#{salt}$#{hash(password, salt)}"
+      "$#{identifier}$#{salt}$#{hash(password, salt, rounds)}"
     end
 
     protected
     def self.base64encode(input)
-      b64 = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
       input = input.bytes.to_a
       output = ""
       byte_indexes.each do |i3, i2, i1|
         b1, b2, b3 = i1 && input[i1] || 0, i2 && input[i2] || 0, i3 && input[i3] || 0
         output <<
-          b64[  b1 & 0b00111111]         <<
-          b64[((b1 & 0b11000000) >> 6) |
+          BASE64_CHARS[  b1 & 0b00111111]         <<
+          BASE64_CHARS[((b1 & 0b11000000) >> 6) |
               ((b2 & 0b00001111) << 2)]  <<
-          b64[((b2 & 0b11110000) >> 4) |
+          BASE64_CHARS[((b2 & 0b11110000) >> 4) |
               ((b3 & 0b00000011) << 4)]  <<
-          b64[ (b3 & 0b11111100) >> 2]
+          BASE64_CHARS[ (b3 & 0b11111100) >> 2]
       end
 
       remainder = 3 - (length % 3)
