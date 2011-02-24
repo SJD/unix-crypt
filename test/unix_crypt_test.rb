@@ -1,13 +1,21 @@
+# encoding: utf-8
+
 #
-# MD5 test cases constructed by Mark Johnston, taken from
+# MD5 password_validity test cases constructed by Mark Johnston, taken from
 # http://code.activestate.com/recipes/325204-passwd-file-compatible-1-md5-crypt/
 #
-# SHA test cases found in Ulrich Drepper's paper on SHA crypt, taken from
+# SHA password_validity test cases found in Ulrich Drepper's paper on SHA crypt, taken from
 # http://www.akkadia.org/drepper/SHA-crypt.txt
 #
 
 require 'test/unit'
-require '../lib/unix_crypt'
+
+require 'pathname'
+UNIXCRYPT_ROOT = Pathname.new(__FILE__).dirname.join('..')
+UNIXCRYPT_LIB_DIR = UNIXCRYPT_ROOT.join("lib")
+$: << UNIXCRYPT_LIB_DIR unless $:.include?(UNIXCRYPT_LIB_DIR)
+
+require 'unix-crypt'
 
 class UnixCryptTest < Test::Unit::TestCase
   def test_password_validity
