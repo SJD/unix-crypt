@@ -8,6 +8,6 @@ spec = Gem::Specification.new do |s|
   s.files = ["lib/unix_crypt.rb", "test/unix_crypt_test.rb"]
   s.require_path = 'lib'
   s.has_rdoc = false
-  s.author = ["Roger Nesbitt", "Sam Duncan"]
+  s.authors = ["Roger Nesbitt", "Sam Duncan"]
   s.email = ["roger@seriousorange.com", Base64.decode64("Z2l0aHViQHBvcnQ4MC5jby5ueg==\n")]
 end
