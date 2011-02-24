@@ -12,6 +12,10 @@ It handles
 * SHA256 passwords (starting with $5$)
 * SHA512 passwords (starting with $6$)
 
+Tested on
+* ruby-1.8.7p249
+* ruby-1.9.2p0
+
 == HOW TO USE
 
 You can either validate a password matches its hash;
