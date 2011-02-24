@@ -3,6 +3,10 @@ require 'digest'
 module UnixCrypt
 
   BASE64_CHARS = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".freeze
+  DEFAULT_MIN_ROUNDS = 1000
+  DEFAULT_MAX_ROUNDS = 999_999_999
+  DEFAULT_ROUNDS = 5000
+  DEFAULT_SALT_LENGTH = 16
 
   def self.valid?(password, string)
     # Handle the original DES-based crypt(3)
@@ -15,16 +19,45 @@ module UnixCrypt
 
   def self.make_salt(length=16)
     salt = ""
-    length.times { salt += BASE64_CHARS[ rand( BASE64_CHARS.length ) ] }
+    length.times { salt = "#{salt}#{BASE64_CHARS[ rand( BASE64_CHARS.length ) ]}" }
     salt
   end
 
   class Base
-    def self.build(password, salt, rounds = nil)
-      "$#{identifier}$#{salt}$#{hash(password, salt, rounds)}"
+
+    private
+    def self._min_rounds
+      @min_rounds ||= DEFAULT_MIN_ROUNDS
+    end
+
+    def self._max_rounds
+      @max_rounds ||= DEFAULT_MAX_ROUNDS
+    end
+
+    def self._default_rounds
+      @default_rounds ||= DEFAULT_ROUNDS
+    end
+
+    def self._salt_length
+      @salt_length ||= DEFAULT_SALT_LENGTH
+    end
+
+    def self._salt
+      UnixCrypt.make_salt(_salt_length)
     end
 
     protected
+    def self.clamp_rounds(rounds)
+      begin
+        rounds.nil? \
+            ? _default_rounds : (rounds.to_i < _min_rounds \
+                ? _min_rounds : (rounds.to_i > _max_rounds \
+                    ? _max_rounds : rounds.to_i))
+      rescue
+        _default_rounds
+      end
+    end
+
     def self.base64encode(input)
       input = input.bytes.to_a
       output = ""
@@ -43,9 +76,29 @@ module UnixCrypt
       remainder = 0 if remainder == 3
       output[0..-1-remainder]
     end
+
+    public
+    def self.build(password, salt, rounds = nil)
+      if clamp_rounds(rounds) == _default_rounds
+        "$#{identifier}$#{salt}$#{hash(password, salt, rounds)}"
+      else
+        "$#{identifier}$rounds=#{clamp_rounds(rounds)}$#{salt}$#{hash(password, salt, rounds)}"
+      end
+    end
+
+    def self.mkpasswd(password, opts={})
+      defaults = {:salt => _salt, :rounds => _default_rounds}
+      opts = defaults.merge(opts) {|key, default, passed| passed.nil? ? default : passed }
+      build(password, opts[:salt], opts[:rounds])
+    end
+
   end
 
   class MD5 < Base
+
+    @default_rounds = 1000
+    @salt_length = 8
+
     def self.digest; Digest::MD5; end
     def self.length; 16; end
     def self.identifier; 1; end
@@ -54,8 +107,9 @@ module UnixCrypt
       [[0, 6, 12], [1, 7, 13], [2, 8, 14], [3, 9, 15], [4, 10, 5], [nil, nil, 11]]
     end
 
-    def self.hash(password, salt, ignored = nil)
-      salt = salt[0..7]
+    def self.hash(password, salt, rounds = nil)
+      rounds = clamp_rounds(rounds)
+      salt = salt[0.._salt_length]
 
       b = digest.digest("#{password}#{salt}#{password}")
       a_string = "#{password}$1$#{salt}#{b * (password.length/length)}#{b[0...password.length % length]}"
@@ -68,7 +122,7 @@ module UnixCrypt
 
       input = digest.digest(a_string)
 
-      1000.times do |index|
+      rounds.times do |index|
         c_string = ((index & 1 != 0) ? password : input)
         c_string += salt unless index % 3 == 0
         c_string += password unless index % 7 == 0
@@ -81,12 +135,13 @@ module UnixCrypt
   end
 
   class SHABase < Base
-    def self.hash(password, salt, rounds = nil)
-      rounds ||= 5000
-      rounds = 1000        if rounds < 1000
-      rounds = 999_999_999 if rounds > 999_999_999
 
-      salt = salt[0..15]
+    @default_rounds = 5000
+    @salt_length = 16
+
+    def self.hash(password, salt, rounds = nil)
+      rounds = clamp_rounds(rounds)
+      salt = salt[0.._salt_length]
 
       b = digest.digest("#{password}#{salt}#{password}")
 
