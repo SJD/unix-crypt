@@ -14,17 +14,49 @@ It handles
 
 == HOW TO USE
 
-You can either validate a password matches its hash:
+You can either validate a password matches its hash;
 
   >> UnixCrypt.valid?("Hello world!", "$5$saltstring$5B8vYYiY.CVt1RlTTf8KbXBH3hsxY/GNooZaBBGWEc5")
   => true
 
-Or you can generate a new hash, given a password and salt:
+Or you can generate a new hash, given a password and salt;
 
   >> UnixCrypt::SHA256.build("Hello world!", "saltstring")
   => "$5$saltstring$5B8vYYiY.CVt1RlTTf8KbXBH3hsxY/GNooZaBBGWEc5"
 
-unix-crypt doesn't generate salts itself - you can use your favourite random number generator to do that.
+The #mkpasswd function is a wrapper for #build, and optionally takes the arguments :salt and :rounds;
+
+  >> UnixCrypt::MD5.mkpasswd('mypass')
+  => "$1$bobkbEpx$JuZ6AsBfd3G9hCLYZ1KDE."
+
+Simple string interpolation can make this LDAP friendly;
+
+  >> "\{crypt\}#{UnixCrypt::SHA256.mkpasswd("mypass")}"
+  => "{crypt}$5$2n4C.bLL..Vknx6B$/kYmXhYDbVIoDEIRL4HqhpUoO0qQqKFIXVizgax.sI7"
+
+Each hash type has sensible defaults that are known to work with crypt(3), however you are free to experiment;
+
+  >> UnixCrypt::SHA256.mkpasswd("mypass", :salt => "foodoo")
+  => "$5$foodoo$kfqi/wcRNkTQw0v.ftfjvwwsFmhiftHmKzSORVsiae1"
+
+  >> UnixCrypt::SHA256.mkpasswd("mypass", :salt => "foodoo", :rounds => 54321)
+  => "$5$rounds=54321$foodoo$bwF37grDS6PE3yfHZeaj1mycDkK8k0wEfRuXXMBcR.9"
+
+If you go nuts with the rounds, be prepared to wait ;]
+
+  >> UnixCrypt::SHA512.mkpasswd("mypass", :rounds => 5_000_000)
+  => "$6$rounds=5000000$0gHHePm/AY9F2KNn$bxfZxe/5ceY.v0rx3ShrD.V5v9/QPk/CsWPSszK.gT6oUHqB1VcQpyGYGf3lNGg7dT7UbunFk5qkzGlL9uT4N1"
+
+  >> UnixCrypt.valid?("mypass", "$6$rounds=5000000$0gHHePm/AY9F2KNn$bxfZxe/5ceY.v0rx3ShrD.V5v9/QPk/CsWPSszK.gT6oUHqB1VcQpyGYGf3lNGg7dT7UbunFk5qkzGlL9uT4N1")
+  => true
+
+unix-crypt can generate salts itself - or you can use your favourite random number generator;
+
+  >> UnixCrypt.make_salt
+  => "FWekKY/Ovu34TiRv"
+
+  >> UnixCrypt.make_salt(32)
+  => "ePfqWKPD7LGyfBNFpsVpKUh7vUKXgsv0"
 
 == LICENSE
 
