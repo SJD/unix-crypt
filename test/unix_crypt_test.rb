@@ -44,7 +44,32 @@ class UnixCryptTest < Test::Unit::TestCase
     ]
 
     tests.each_with_index do |(salt, password, expected), index|
-      assert UnixCrypt.valid?(password, expected), "Password '#{password}' (index #{index}) failed"
+      assert UnixCrypt.valid?(password, expected), "Password '#{password}' (index #{index}) failed: got '#{password}', expected '#{expected}'"
+    end
+  end
+
+  def test_mkpasswd
+    password_types = ["1", "5", "6"] # MD5, SHA256, SHA512
+    tests = [
+      [" ", nil, nil],
+      ["pass", nil, nil],
+      ["longpass", nil, nil],
+      ["extralongpass1234", nil, nil],
+
+      [" ", " ", nil],
+      ["pass", "salt", nil],
+      ["longpass", "longsalt", nil],
+      ["extralongpass1234", "extralongsalt1234", nil],
+
+      [" ", " ", nil],
+      ["pass", "salt", -1],
+      ["longpass", "longsalt", 1000],
+      ["extralongpass1234", "extralongsalt1234", 5000]
+    ]
+    password_types.each do |type|
+      tests.each_with_index do |(password, salt, rounds), index|
+        assert UnixCrypt.valid?(password, UnixCrypt::IDENTIFIER_MAPPINGS[type].send(:mkpasswd, password, :salt => salt, :rounds => rounds))
+      end
     end
   end
 end
