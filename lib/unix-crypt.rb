@@ -33,9 +33,7 @@ module UnixCrypt
     end
 
     def self.make_salt(length=16)
-        salt = ""
-        length.times { salt = "#{salt}#{CRYPT_CHARS[ rand( CRYPT_CHARS.length ) ]}" }
-        salt
+        length.times.collect { CRYPT_CHARS[ rand( CRYPT_CHARS.length ) ] }.join("")
     end
 
 end # module UnixCrypt
