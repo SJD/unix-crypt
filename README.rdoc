@@ -6,7 +6,7 @@ unix-crypt makes and validates passwords of the form found in shadow files or LD
 
   >> man 3 crypt
 
-It is written entirely in Ruby and requires only 'digest' from the standard library. It runs roughly twice as fast on Ruby >= 1.9.x
+It is written entirely in Ruby and requires only 'digest' from the standard library. It will make use of 'securerandom' if available for salt generation. The tests run nearly twice as fast on Ruby >= 1.9.x
 
 It makes and validates
 * DES passwords (the standard unmarked 13 character password with a 2 character salt)
@@ -67,6 +67,10 @@ unix-crypt can generate salts itself - or you can use your favourite random numb
 
   >> UnixCrypt.make_salt(32)
   => "ePfqWKPD7LGyfBNFpsVpKUh7vUKXgsv0"
+
+Using #mkpasswd *without* a %:salt% argument will cause UnixCrypt#make_salt to be used.
+
+Note: UnixCrypt#secure_random? will return a boolean to indicate if 'securerandom' is in use.
 
 == LICENSE
 

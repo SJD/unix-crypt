@@ -21,6 +21,21 @@ module UnixCrypt
         UnixCrypt::SHA512.identifier.to_s => UnixCrypt::SHA512
     }.freeze
 
+    module_eval do
+        begin
+            require 'securerandom'
+            def self.random(*args); SecureRandom.random_number(*args); end
+            SECURE_RANDOM = true
+        rescue LoadError
+            def self.random(*args); Kernel.rand(*args) end
+            SECURE_RANDOM = false
+        end
+    end
+
+    def self.secure_random?
+        SECURE_RANDOM
+    end
+
     def self.valid?(password, target)
         m = target.match(/\A\$([156])\$(?:rounds=(\d+)\$)?(.+)\$(.+)/)
         id, salt, rounds, target = case m
@@ -33,7 +48,7 @@ module UnixCrypt
     end
 
     def self.make_salt(length=16)
-        length.times.collect { CRYPT_CHARS[ rand( CRYPT_CHARS.length ) ] }.join("")
+        length.times.collect { CRYPT_CHARS[ random( CRYPT_CHARS.length ) ] }.join("")
     end
 
 end # module UnixCrypt
