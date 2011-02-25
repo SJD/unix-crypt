@@ -21,6 +21,12 @@ module UnixCrypt
                 key_space.to_f / 1000
             end
 
+            String.class_eval do
+                def self.digest(obj)
+                    self.new(obj)
+                end
+            end
+
         end # module StringExt
 
     end # module CoreExt

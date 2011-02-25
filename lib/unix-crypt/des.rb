@@ -17,7 +17,7 @@ module UnixCrypt
             rounds = clamp_rounds(rounds)
             salt = salt[0.._salt_length]
 
-            input = self.digest.new(password)
+            input = digest.digest(password)
             rounds.times do |index|
                 input = input.crypt(salt)
             end
