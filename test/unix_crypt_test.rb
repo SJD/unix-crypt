@@ -16,6 +16,8 @@ UNIXCRYPT_LIB_DIR = UNIXCRYPT_ROOT.join("lib")
 $: << UNIXCRYPT_LIB_DIR unless $:.include?(UNIXCRYPT_LIB_DIR)
 
 require 'unix-crypt'
+puts "Ruby Version: #{RUBY_VERSION} (#{RUBY_RELEASE_DATE}) #{RUBY_PLATFORM}"
+puts "Using SecureRandom: #{UnixCrypt.secure_random?}"
 
 class UnixCryptTest < Test::Unit::TestCase
   def test_password_validity
