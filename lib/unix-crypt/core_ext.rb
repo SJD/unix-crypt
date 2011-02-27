@@ -13,12 +13,10 @@ module UnixCrypt
                 /[^\w]/ => 32
             }.freeze
 
-            def strength
+            def unixcrypt_keyspace
                 set_size = 0
                 SET_SIZES.each_pair {|set, size| set_size += size if self =~ set}
-                key_space = set_size ** length
-                # brute force 1000 per second
-                key_space.to_f / 1000
+                set_size ** length
             end
 
             String.class_eval do
