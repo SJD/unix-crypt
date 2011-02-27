@@ -68,7 +68,7 @@ unix-crypt can generate salts itself - or you can use your favourite random numb
   >> UnixCrypt.make_salt(32)
   => "ePfqWKPD7LGyfBNFpsVpKUh7vUKXgsv0"
 
-Using #mkpasswd *without* a %:salt% argument will cause UnixCrypt#make_salt to be used.
+Using #mkpasswd *without* a :salt argument will cause UnixCrypt#make_salt to be used.
 
 Note: UnixCrypt#secure_random? will return a boolean to indicate if 'securerandom' is in use.
 
