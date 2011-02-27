@@ -30,7 +30,7 @@ module UnixCrypt
             def self.random(*args); Kernel.rand(*args) end
             SECURE_RANDOM = false
         end
-    end
+    end unless defined?(SECURE_RANDOM)
 
     def self.secure_random?
         SECURE_RANDOM
