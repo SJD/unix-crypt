@@ -48,7 +48,7 @@ module UnixCrypt
     end
 
     def self.make_salt(length=16)
-        length.times.collect { CRYPT_CHARS[ random( CRYPT_CHARS.length ) ] }.join("")
+        length.times.collect { CRYPT_CHARS[ random( CRYPT_CHARS.length ) ].chr }.join("")
     end
 
 end # module UnixCrypt
